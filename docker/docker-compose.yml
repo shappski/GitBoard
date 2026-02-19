@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gitboard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gitboard_dev}
+      POSTGRES_DB: gitboard
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gitboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3033:3033"
+    environment:
+      DATABASE_URL: postgresql://gitboard:${POSTGRES_PASSWORD:-gitboard_dev}@db:5432/gitboard
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3033}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      GITLAB_CLIENT_ID: ${GITLAB_CLIENT_ID}
+      GITLAB_CLIENT_SECRET: ${GITLAB_CLIENT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "npx prisma migrate deploy && node server.js"
+
+  worker:
+    build:
+      context: ..
+      dockerfile: worker/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://gitboard:${POSTGRES_PASSWORD:-gitboard_dev}@db:5432/gitboard
+      GITLAB_CLIENT_ID: ${GITLAB_CLIENT_ID}
+      GITLAB_CLIENT_SECRET: ${GITLAB_CLIENT_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      SYNC_CRON: ${SYNC_CRON:-*/15 * * * *}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
