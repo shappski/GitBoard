@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { BoardStats } from "@/components/boards/board-stats";
-import { IssueList } from "@/components/boards/issue-list";
+import { BoardColumns } from "@/components/boards/board-columns";
+import { BoardFilterBar } from "@/components/boards/board-filter-bar";
+import { Assignee } from "@/components/boards/board-issue-card";
 
 interface MergeRequestData {
   id: string;
@@ -23,6 +25,7 @@ interface IssueData {
   authorName: string | null;
   authorUsername: string | null;
   labels: string[];
+  assignees: Assignee[];
   mergeRequests: MergeRequestData[];
 }
 
@@ -40,6 +43,10 @@ interface BoardData {
     issuesWithoutMRs: number;
     issuesWithStaleMRs: number;
   };
+  meta: {
+    labels: string[];
+    assignees: Assignee[];
+  };
 }
 
 export default function BoardPage() {
@@ -47,6 +54,10 @@ export default function BoardPage() {
   const [data, setData] = useState<BoardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [selectedAssignee, setSelectedAssignee] = useState("");
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -71,6 +82,32 @@ export default function BoardPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const filteredIssues = useMemo(() => {
+    if (!data) return [];
+    let issues = data.issues;
+
+    if (selectedAssignee) {
+      issues = issues.filter((issue) =>
+        issue.assignees.some((a) => a.username === selectedAssignee)
+      );
+    }
+
+    if (selectedLabels.length > 0) {
+      issues = issues.filter((issue) =>
+        selectedLabels.some((l) => (issue.labels as string[]).includes(l))
+      );
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      issues = issues.filter((issue) =>
+        issue.title.toLowerCase().includes(q)
+      );
+    }
+
+    return issues;
+  }, [data, selectedAssignee, selectedLabels, searchQuery]);
 
   if (loading) {
     return (
@@ -103,7 +140,7 @@ export default function BoardPage() {
   if (!data) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <Link href="/boards" className="hover:text-indigo-600">Boards</Link>
@@ -118,7 +155,19 @@ export default function BoardPage() {
       </div>
 
       <BoardStats stats={data.stats} />
-      <IssueList issues={data.issues} />
+
+      <BoardFilterBar
+        assignees={data.meta.assignees}
+        labels={data.meta.labels}
+        selectedAssignee={selectedAssignee}
+        selectedLabels={selectedLabels}
+        searchQuery={searchQuery}
+        onAssigneeChange={setSelectedAssignee}
+        onLabelsChange={setSelectedLabels}
+        onSearchChange={setSearchQuery}
+      />
+
+      <BoardColumns issues={filteredIssues} labels={data.meta.labels} />
     </div>
   );
 }

@@ -41,6 +41,11 @@ export function mapIssue(issue: GitLabIssue, projectId: string) {
     authorUsername: issue.author?.username ?? null,
     authorAvatarUrl: issue.author?.avatar_url ?? null,
     labels: issue.labels ?? [],
+    assignees: (issue.assignees ?? []).map((a) => ({
+      name: a.name,
+      username: a.username,
+      avatar_url: a.avatar_url,
+    })),
     gitlabCreatedAt: new Date(issue.created_at),
     gitlabUpdatedAt: new Date(issue.updated_at),
   };

@@ -1,11 +1,11 @@
-import { IssueCard } from "./issue-card";
+import { BoardColumn } from "./board-column";
+import { Assignee } from "./board-issue-card";
 
 interface MergeRequestData {
   id: string;
   title: string;
   webUrl: string;
   pipelineStatus: string | null;
-  gitlabUpdatedAt: string;
   idleDays: number;
   isStale: boolean;
 }
@@ -14,17 +14,41 @@ interface IssueData {
   id: string;
   title: string;
   webUrl: string;
-  authorName: string | null;
-  authorUsername: string | null;
   labels: string[];
+  assignees: Assignee[];
   mergeRequests: MergeRequestData[];
 }
 
-interface IssueListProps {
+interface BoardColumnsProps {
   issues: IssueData[];
+  labels: string[];
 }
 
-export function IssueList({ issues }: IssueListProps) {
+function assignIssueToColumn(issue: IssueData, columnLabels: string[]): string {
+  const issueLabels = (issue.labels as string[]).filter((l) =>
+    columnLabels.includes(l)
+  );
+  if (issueLabels.length === 0) return "Open";
+  issueLabels.sort((a, b) => a.localeCompare(b));
+  return issueLabels[0];
+}
+
+export function BoardColumns({ issues, labels }: BoardColumnsProps) {
+  const columns: { label: string; issues: IssueData[] }[] = [
+    { label: "Open", issues: [] },
+    ...labels.map((l) => ({ label: l, issues: [] as IssueData[] })),
+  ];
+
+  const columnMap = new Map(columns.map((c) => [c.label, c]));
+
+  for (const issue of issues) {
+    const columnLabel = assignIssueToColumn(issue, labels);
+    const col = columnMap.get(columnLabel);
+    if (col) {
+      col.issues.push(issue);
+    }
+  }
+
   if (issues.length === 0) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
@@ -40,18 +64,12 @@ export function IssueList({ issues }: IssueListProps) {
   }
 
   return (
-    <div className="space-y-3">
-      {issues.map((issue) => (
-        <IssueCard
-          key={issue.id}
-          title={issue.title}
-          webUrl={issue.webUrl}
-          authorName={issue.authorName}
-          authorUsername={issue.authorUsername}
-          labels={issue.labels}
-          mergeRequests={issue.mergeRequests}
-        />
-      ))}
+    <div className="overflow-x-auto pb-4">
+      <div className="flex gap-4">
+        {columns.map((col) => (
+          <BoardColumn key={col.label} label={col.label} issues={col.issues} />
+        ))}
+      </div>
     </div>
   );
 }

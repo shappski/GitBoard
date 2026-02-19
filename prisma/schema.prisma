@@ -136,6 +136,7 @@ model Issue {
   authorUsername    String?
   authorAvatarUrl  String?
   labels           Json     @default("[]")
+  assignees        Json     @default("[]")
   gitlabCreatedAt  DateTime
   gitlabUpdatedAt  DateTime
 

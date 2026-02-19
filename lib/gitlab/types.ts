@@ -44,6 +44,7 @@ export interface GitLabIssue {
   web_url: string;
   labels: string[];
   author: { name: string; username: string; avatar_url: string };
+  assignees: { name: string; username: string; avatar_url: string }[];
   created_at: string;
   updated_at: string;
 }

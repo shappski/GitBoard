@@ -60,7 +60,27 @@ export async function GET(
       ).length,
     };
 
-    return NextResponse.json({ project, issues: enriched, stats });
+    const allLabels = new Set<string>();
+    const assigneeMap = new Map<string, { name: string; username: string; avatar_url: string }>();
+    for (const issue of enriched) {
+      for (const label of issue.labels as string[]) {
+        allLabels.add(label);
+      }
+      for (const assignee of issue.assignees as { name: string; username: string; avatar_url: string }[]) {
+        if (!assigneeMap.has(assignee.username)) {
+          assigneeMap.set(assignee.username, assignee);
+        }
+      }
+    }
+
+    const meta = {
+      labels: Array.from(allLabels).sort(),
+      assignees: Array.from(assigneeMap.values()).sort((a, b) =>
+        a.name.localeCompare(b.name)
+      ),
+    };
+
+    return NextResponse.json({ project, issues: enriched, stats, meta });
   } catch (error) {
     console.error("Board issues API error:", error);
     return NextResponse.json(
