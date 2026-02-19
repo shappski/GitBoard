@@ -42,6 +42,7 @@ export async function GET(
 
     const enriched = issues.map((issue) => ({
       ...issue,
+      assignees: (issue.assignees ?? []) as { name: string; username: string; avatar_url: string }[],
       mergeRequests: issue.mergeRequests.map((imr) => ({
         ...imr.mergeRequest,
         idleDays: idleDays(imr.mergeRequest.gitlabUpdatedAt),
@@ -66,7 +67,7 @@ export async function GET(
       for (const label of issue.labels as string[]) {
         allLabels.add(label);
       }
-      for (const assignee of issue.assignees as { name: string; username: string; avatar_url: string }[]) {
+      for (const assignee of (issue.assignees ?? []) as { name: string; username: string; avatar_url: string }[]) {
         if (!assigneeMap.has(assignee.username)) {
           assigneeMap.set(assignee.username, assignee);
         }
