@@ -18,9 +18,25 @@ export async function GET(req: NextRequest) {
     const projects = await searchProjects(token, query);
     return NextResponse.json(projects);
   } catch (error) {
-    console.error("Project search failed:", error);
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error("Project search failed:", message);
+
+    // Surface token-related errors as 401 so the user knows to re-authenticate
+    if (
+      message.includes("Token expired") ||
+      message.includes("Token refresh failed") ||
+      message.includes("No GitLab account found") ||
+      message.includes("401")
+    ) {
+      return NextResponse.json(
+        { error: "GitLab token expired — please sign out and sign back in" },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Failed to search projects" },
+      { error: `Failed to search projects: ${message}` },
       { status: 500 }
     );
   }
