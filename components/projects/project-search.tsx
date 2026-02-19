@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 interface GitLabProject {
@@ -20,19 +20,31 @@ export function ProjectSearch({
   const [results, setResults] = useState<GitLabProject[]>([]);
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const search = useCallback(async (q: string) => {
     if (q.length < 2) {
       setResults([]);
+      setError(null);
       return;
     }
     setSearching(true);
+    setError(null);
     try {
       const res = await fetch(`/api/projects/search?q=${encodeURIComponent(q)}`);
       if (res.ok) {
         const data = await res.json();
         setResults(data);
+      } else {
+        const body = await res.json().catch(() => null);
+        const message = body?.error || `Search failed (${res.status})`;
+        setError(message);
+        setResults([]);
       }
+    } catch {
+      setError("Network error — could not reach the server");
+      setResults([]);
     } finally {
       setSearching(false);
     }
@@ -61,11 +73,10 @@ export function ProjectSearch({
     }
   }
 
-  let debounceTimer: ReturnType<typeof setTimeout>;
   function handleInput(value: string) {
     setQuery(value);
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => search(value), 300);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => search(value), 300);
   }
 
   return (
@@ -94,6 +105,10 @@ export function ProjectSearch({
           </svg>
         )}
       </div>
+
+      {error && (
+        <p className="text-sm text-red-600">{error}</p>
+      )}
 
       {results.length > 0 && (
         <div className="max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-white">
