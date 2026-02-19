@@ -52,10 +52,17 @@ export default function BoardPage() {
     try {
       const res = await fetch(`/api/boards/${params.projectId}/issues`);
       if (!res.ok) {
-        setError(res.status === 404 ? "Project not found" : "Failed to load board");
+        if (res.status === 404) {
+          setError("Project not found");
+          return;
+        }
+        const body = await res.json().catch(() => null);
+        setError(body?.error || "Failed to load board");
         return;
       }
       setData(await res.json());
+    } catch {
+      setError("Failed to connect to server");
     } finally {
       setLoading(false);
     }

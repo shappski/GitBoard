@@ -15,46 +15,57 @@ export async function GET(
 
   const { projectId } = await params;
 
-  const project = await prisma.monitoredProject.findFirst({
-    where: { id: projectId, userId: session.user.id },
-    select: { id: true, name: true, nameWithNamespace: true, webUrl: true },
-  });
+  try {
+    const project = await prisma.monitoredProject.findFirst({
+      where: { id: projectId, userId: session.user.id },
+      select: { id: true, name: true, nameWithNamespace: true, webUrl: true },
+    });
 
-  if (!project) {
-    return NextResponse.json({ error: "Project not found" }, { status: 404 });
-  }
+    if (!project) {
+      return NextResponse.json(
+        { error: "Project not found" },
+        { status: 404 }
+      );
+    }
 
-  const issues = await prisma.issue.findMany({
-    where: { projectId, state: "opened" },
-    include: {
-      mergeRequests: {
-        include: {
-          mergeRequest: true,
+    const issues = await prisma.issue.findMany({
+      where: { projectId, state: "opened" },
+      include: {
+        mergeRequests: {
+          include: {
+            mergeRequest: true,
+          },
         },
       },
-    },
-    orderBy: { gitlabUpdatedAt: "desc" },
-  });
+      orderBy: { gitlabUpdatedAt: "desc" },
+    });
 
-  const enriched = issues.map((issue) => ({
-    ...issue,
-    mergeRequests: issue.mergeRequests.map((imr) => ({
-      ...imr.mergeRequest,
-      idleDays: idleDays(imr.mergeRequest.gitlabUpdatedAt),
-      isStale:
-        idleDays(imr.mergeRequest.gitlabUpdatedAt) >= STALE_THRESHOLD_DAYS,
-    })),
-  }));
+    const enriched = issues.map((issue) => ({
+      ...issue,
+      mergeRequests: issue.mergeRequests.map((imr) => ({
+        ...imr.mergeRequest,
+        idleDays: idleDays(imr.mergeRequest.gitlabUpdatedAt),
+        isStale:
+          idleDays(imr.mergeRequest.gitlabUpdatedAt) >= STALE_THRESHOLD_DAYS,
+      })),
+    }));
 
-  const stats = {
-    totalIssues: enriched.length,
-    issuesWithMRs: enriched.filter((i) => i.mergeRequests.length > 0).length,
-    issuesWithoutMRs: enriched.filter((i) => i.mergeRequests.length === 0)
-      .length,
-    issuesWithStaleMRs: enriched.filter((i) =>
-      i.mergeRequests.some((mr) => mr.isStale)
-    ).length,
-  };
+    const stats = {
+      totalIssues: enriched.length,
+      issuesWithMRs: enriched.filter((i) => i.mergeRequests.length > 0).length,
+      issuesWithoutMRs: enriched.filter((i) => i.mergeRequests.length === 0)
+        .length,
+      issuesWithStaleMRs: enriched.filter((i) =>
+        i.mergeRequests.some((mr) => mr.isStale)
+      ).length,
+    };
 
-  return NextResponse.json({ project, issues: enriched, stats });
+    return NextResponse.json({ project, issues: enriched, stats });
+  } catch (error) {
+    console.error("Board issues API error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
