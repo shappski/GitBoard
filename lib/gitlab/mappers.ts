@@ -1,4 +1,4 @@
-import type { GitLabMergeRequest } from "./types";
+import type { GitLabMergeRequest, GitLabIssue } from "./types";
 
 export function mapMergeRequest(
   mr: GitLabMergeRequest,
@@ -26,5 +26,22 @@ export function mapMergeRequest(
       username: r.username,
       avatar_url: r.avatar_url,
     })),
+  };
+}
+
+export function mapIssue(issue: GitLabIssue, projectId: string) {
+  return {
+    projectId,
+    gitlabIssueIid: issue.iid,
+    gitlabIssueId: issue.id,
+    title: issue.title,
+    webUrl: issue.web_url,
+    state: issue.state,
+    authorName: issue.author?.name ?? null,
+    authorUsername: issue.author?.username ?? null,
+    authorAvatarUrl: issue.author?.avatar_url ?? null,
+    labels: issue.labels ?? [],
+    gitlabCreatedAt: new Date(issue.created_at),
+    gitlabUpdatedAt: new Date(issue.updated_at),
   };
 }

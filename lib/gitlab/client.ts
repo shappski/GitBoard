@@ -1,5 +1,5 @@
 import { GITLAB_API_BASE, RATE_LIMIT_THRESHOLD } from "@/lib/constants";
-import type { GitLabProject, GitLabMergeRequest, GitLabTokenResponse } from "./types";
+import type { GitLabProject, GitLabMergeRequest, GitLabIssue, GitLabTokenResponse } from "./types";
 import { prisma } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/encryption";
 
@@ -204,6 +204,57 @@ export async function fetchOpenMergeRequests(
     `/projects/${projectId}/merge_requests`,
     token,
     params
+  );
+}
+
+export async function fetchOpenIssues(
+  token: string,
+  projectId: number,
+  updatedAfter?: string
+): Promise<GitLabIssue[]> {
+  const params: Record<string, string> = {
+    state: "opened",
+    order_by: "updated_at",
+    sort: "desc",
+  };
+  if (updatedAfter) {
+    params.updated_after = updatedAfter;
+  }
+  return gitlabFetchPaginated<GitLabIssue>(
+    `/projects/${projectId}/issues`,
+    token,
+    params
+  );
+}
+
+export async function fetchRecentlyClosedIssues(
+  token: string,
+  projectId: number,
+  updatedAfter?: string
+): Promise<GitLabIssue[]> {
+  const params: Record<string, string> = {
+    state: "closed",
+    order_by: "updated_at",
+    sort: "desc",
+  };
+  if (updatedAfter) {
+    params.updated_after = updatedAfter;
+  }
+  return gitlabFetchPaginated<GitLabIssue>(
+    `/projects/${projectId}/issues`,
+    token,
+    params
+  );
+}
+
+export async function fetchIssueRelatedMRs(
+  token: string,
+  projectId: number,
+  issueIid: number
+): Promise<GitLabMergeRequest[]> {
+  return gitlabFetch<GitLabMergeRequest[]>(
+    `/projects/${projectId}/issues/${issueIid}/related_merge_requests`,
+    token
   );
 }
 

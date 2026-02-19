@@ -36,6 +36,18 @@ export interface GitLabMergeRequest {
   } | null;
 }
 
+export interface GitLabIssue {
+  id: number;
+  iid: number;
+  title: string;
+  state: string;
+  web_url: string;
+  labels: string[];
+  author: { name: string; username: string; avatar_url: string };
+  created_at: string;
+  updated_at: string;
+}
+
 export interface GitLabTokenResponse {
   access_token: string;
   token_type: string;
