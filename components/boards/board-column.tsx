@@ -32,7 +32,7 @@ export function BoardColumn({ label, issues, color }: BoardColumnProps) {
 
   if (collapsed) {
     return (
-      <div className="flex w-[40px] min-w-[40px] flex-col items-center rounded-lg bg-gray-50 border border-gray-200">
+      <div className="flex w-[40px] min-w-[40px] flex-col items-center bg-background">
         {color && (
           <div className="h-1 w-full rounded-t-lg" style={{ backgroundColor: color }} />
         )}
@@ -59,7 +59,7 @@ export function BoardColumn({ label, issues, color }: BoardColumnProps) {
   }
 
   return (
-    <div className="flex w-[280px] min-w-[280px] flex-col rounded-lg bg-gray-50 border border-gray-200">
+    <div className="flex w-[280px] min-w-[280px] flex-col bg-background">
       {color && (
         <div className="h-1 rounded-t-lg" style={{ backgroundColor: color }} />
       )}

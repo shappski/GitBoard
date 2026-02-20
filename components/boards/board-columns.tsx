@@ -80,9 +80,12 @@ export function BoardColumns({ issues, labels, boardLists }: BoardColumnsProps) 
 
   return (
     <div className="overflow-x-auto pb-4">
-      <div className="flex gap-4">
-        {columns.map((col) => (
-          <BoardColumn key={col.label} label={col.label} issues={col.issues} color={col.color} />
+      <div className="flex">
+        {columns.map((col, i) => (
+          <div key={col.label} className="flex">
+            {i > 0 && <div className="w-1 self-stretch bg-white" />}
+            <BoardColumn label={col.label} issues={col.issues} color={col.color} />
+          </div>
         ))}
       </div>
     </div>
