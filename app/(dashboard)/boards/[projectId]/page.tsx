@@ -46,6 +46,7 @@ interface BoardData {
   meta: {
     labels: string[];
     assignees: Assignee[];
+    boardLists: { label: string; color: string; position: number }[];
   };
 }
 
@@ -167,7 +168,7 @@ export default function BoardPage() {
         onSearchChange={setSearchQuery}
       />
 
-      <BoardColumns issues={filteredIssues} labels={data.meta.labels} />
+      <BoardColumns issues={filteredIssues} labels={data.meta.labels} boardLists={data.meta.boardLists} />
     </div>
   );
 }

@@ -61,6 +61,12 @@ export async function GET(
       ).length,
     };
 
+    const boardLists = await prisma.boardList.findMany({
+      where: { projectId },
+      orderBy: { position: "asc" },
+      select: { label: true, color: true, position: true },
+    });
+
     const allLabels = new Set<string>();
     const assigneeMap = new Map<string, { name: string; username: string; avatar_url: string }>();
     for (const issue of enriched) {
@@ -79,6 +85,7 @@ export async function GET(
       assignees: Array.from(assigneeMap.values()).sort((a, b) =>
         a.name.localeCompare(b.name)
       ),
+      boardLists,
     };
 
     return NextResponse.json({ project, issues: enriched, stats, meta });

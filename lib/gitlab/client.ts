@@ -1,5 +1,5 @@
 import { GITLAB_API_BASE, RATE_LIMIT_THRESHOLD } from "@/lib/constants";
-import type { GitLabProject, GitLabMergeRequest, GitLabIssue, GitLabTokenResponse } from "./types";
+import type { GitLabProject, GitLabMergeRequest, GitLabIssue, GitLabBoard, GitLabTokenResponse } from "./types";
 import { prisma } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/encryption";
 
@@ -256,6 +256,13 @@ export async function fetchIssueRelatedMRs(
     `/projects/${projectId}/issues/${issueIid}/related_merge_requests`,
     token
   );
+}
+
+export async function fetchProjectBoards(
+  token: string,
+  projectId: number
+): Promise<GitLabBoard[]> {
+  return gitlabFetch<GitLabBoard[]>(`/projects/${projectId}/boards`, token);
 }
 
 export async function fetchRecentlyClosedMergeRequests(

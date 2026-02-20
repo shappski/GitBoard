@@ -6,6 +6,7 @@ import {
   fetchOpenIssues,
   fetchRecentlyClosedIssues,
   fetchIssueRelatedMRs,
+  fetchProjectBoards,
 } from "./client";
 import { mapMergeRequest, mapIssue } from "./mappers";
 
@@ -138,6 +139,24 @@ export async function syncUserProjects(userId: string): Promise<{
             gitlabIssueIid: { in: closedIssues.map((i) => i.iid) },
           },
         });
+      }
+
+      // Fetch and store board configuration
+      const boards = await fetchProjectBoards(token, project.gitlabProjectId);
+      if (boards.length > 0) {
+        const board = boards[0];
+        await prisma.boardList.deleteMany({ where: { projectId: project.id } });
+        for (const list of board.lists) {
+          await prisma.boardList.create({
+            data: {
+              projectId: project.id,
+              gitlabBoardId: board.id,
+              label: list.label.name,
+              color: list.label.color,
+              position: list.position,
+            },
+          });
+        }
       }
 
       // Update lastSyncAt

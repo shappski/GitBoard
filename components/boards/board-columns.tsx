@@ -19,9 +19,16 @@ interface IssueData {
   mergeRequests: MergeRequestData[];
 }
 
+interface BoardListDef {
+  label: string;
+  color: string;
+  position: number;
+}
+
 interface BoardColumnsProps {
   issues: IssueData[];
   labels: string[];
+  boardLists: BoardListDef[];
 }
 
 function assignIssueToColumn(issue: IssueData, columnLabels: string[]): string {
@@ -33,16 +40,24 @@ function assignIssueToColumn(issue: IssueData, columnLabels: string[]): string {
   return issueLabels[0];
 }
 
-export function BoardColumns({ issues, labels }: BoardColumnsProps) {
-  const columns: { label: string; issues: IssueData[] }[] = [
-    { label: "Open", issues: [] },
-    ...labels.map((l) => ({ label: l, issues: [] as IssueData[] })),
-  ];
+export function BoardColumns({ issues, labels, boardLists }: BoardColumnsProps) {
+  const useBoardLists = boardLists.length > 0;
 
+  const columns: { label: string; color?: string; issues: IssueData[] }[] = useBoardLists
+    ? [
+        { label: "Open", issues: [] },
+        ...boardLists.map((bl) => ({ label: bl.label, color: bl.color, issues: [] as IssueData[] })),
+      ]
+    : [
+        { label: "Open", issues: [] },
+        ...labels.map((l) => ({ label: l, issues: [] as IssueData[] })),
+      ];
+
+  const columnLabels = useBoardLists ? boardLists.map((bl) => bl.label) : labels;
   const columnMap = new Map(columns.map((c) => [c.label, c]));
 
   for (const issue of issues) {
-    const columnLabel = assignIssueToColumn(issue, labels);
+    const columnLabel = assignIssueToColumn(issue, columnLabels);
     const col = columnMap.get(columnLabel);
     if (col) {
       col.issues.push(issue);
@@ -67,7 +82,7 @@ export function BoardColumns({ issues, labels }: BoardColumnsProps) {
     <div className="overflow-x-auto pb-4">
       <div className="flex gap-4">
         {columns.map((col) => (
-          <BoardColumn key={col.label} label={col.label} issues={col.issues} />
+          <BoardColumn key={col.label} label={col.label} issues={col.issues} color={col.color} />
         ))}
       </div>
     </div>

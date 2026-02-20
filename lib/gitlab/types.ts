@@ -49,6 +49,20 @@ export interface GitLabIssue {
   updated_at: string;
 }
 
+export interface GitLabBoardList {
+  id: number;
+  label: { name: string; color: string; description: string | null };
+  position: number;
+}
+
+export interface GitLabBoard {
+  id: number;
+  name: string;
+  hide_backlog_list: boolean;
+  hide_closed_list: boolean;
+  lists: GitLabBoardList[];
+}
+
 export interface GitLabTokenResponse {
   access_token: string;
   token_type: string;

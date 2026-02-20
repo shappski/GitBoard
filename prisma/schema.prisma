@@ -8,19 +8,19 @@ datasource db {
 }
 
 model User {
-  id              String             @id @default(cuid())
-  name            String?
-  email           String?            @unique
-  emailVerified   DateTime?
-  image           String?
-  gitlabId        Int?               @unique
-  gitlabUsername  String?
-  accounts        Account[]
-  sessions        Session[]
+  id                String             @id @default(cuid())
+  name              String?
+  email             String?            @unique
+  emailVerified     DateTime?
+  image             String?
+  gitlabId          Int?               @unique
+  gitlabUsername    String?
+  accounts          Account[]
+  sessions          Session[]
   monitoredProjects MonitoredProject[]
-  syncLogs        SyncLog[]
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  syncLogs          SyncLog[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 model Account {
@@ -59,18 +59,19 @@ model VerificationToken {
 }
 
 model MonitoredProject {
-  id               String         @id @default(cuid())
-  userId           String
-  gitlabProjectId  Int
-  name             String
+  id                String    @id @default(cuid())
+  userId            String
+  gitlabProjectId   Int
+  name              String
   nameWithNamespace String?
-  webUrl           String
-  lastSyncAt       DateTime?
-  syncEnabled      Boolean        @default(true)
+  webUrl            String
+  lastSyncAt        DateTime?
+  syncEnabled       Boolean   @default(true)
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   mergeRequests MergeRequest[]
   issues        Issue[]
+  boardLists    BoardList[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -80,26 +81,26 @@ model MonitoredProject {
 }
 
 model MergeRequest {
-  id               String   @id @default(cuid())
-  projectId        String
-  gitlabMrIid      Int
-  gitlabMrId       Int
-  title            String
-  webUrl           String
-  state            String
-  authorName       String?
-  authorUsername   String?
+  id              String   @id @default(cuid())
+  projectId       String
+  gitlabMrIid     Int
+  gitlabMrId      Int
+  title           String
+  webUrl          String
+  state           String
+  authorName      String?
+  authorUsername  String?
   authorAvatarUrl String?
-  draft            Boolean  @default(false)
-  sourceBranch     String?
-  targetBranch     String?
-  gitlabCreatedAt  DateTime
-  gitlabUpdatedAt  DateTime
-  pipelineStatus   String?
-  labels           Json     @default("[]")
-  reviewers        Json     @default("[]")
+  draft           Boolean  @default(false)
+  sourceBranch    String?
+  targetBranch    String?
+  gitlabCreatedAt DateTime
+  gitlabUpdatedAt DateTime
+  pipelineStatus  String?
+  labels          Json     @default("[]")
+  reviewers       Json     @default("[]")
 
-  project MonitoredProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project MonitoredProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   issues  IssueMergeRequest[]
 
   createdAt DateTime @default(now())
@@ -111,13 +112,13 @@ model MergeRequest {
 }
 
 model SyncLog {
-  id        String   @id @default(cuid())
-  userId    String
-  status    String
-  error     String?
-  mrsFetched     Int @default(0)
-  issuesFetched  Int @default(0)
-  duration       Int @default(0)
+  id            String  @id @default(cuid())
+  userId        String
+  status        String
+  error         String?
+  mrsFetched    Int     @default(0)
+  issuesFetched Int     @default(0)
+  duration      Int     @default(0)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -125,23 +126,23 @@ model SyncLog {
 }
 
 model Issue {
-  id               String   @id @default(cuid())
-  projectId        String
-  gitlabIssueIid   Int
-  gitlabIssueId    Int
-  title            String
-  webUrl           String
-  state            String
-  authorName       String?
-  authorUsername    String?
-  authorAvatarUrl  String?
-  labels           Json     @default("[]")
-  assignees        Json     @default("[]")
-  gitlabCreatedAt  DateTime
-  gitlabUpdatedAt  DateTime
+  id              String   @id @default(cuid())
+  projectId       String
+  gitlabIssueIid  Int
+  gitlabIssueId   Int
+  title           String
+  webUrl          String
+  state           String
+  authorName      String?
+  authorUsername  String?
+  authorAvatarUrl String?
+  labels          Json     @default("[]")
+  assignees       Json     @default("[]")
+  gitlabCreatedAt DateTime
+  gitlabUpdatedAt DateTime
 
-  project          MonitoredProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  mergeRequests    IssueMergeRequest[]
+  project       MonitoredProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mergeRequests IssueMergeRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -151,13 +152,27 @@ model Issue {
   @@index([state])
 }
 
+model BoardList {
+  id            String @id @default(cuid())
+  projectId     String
+  gitlabBoardId Int
+  label         String
+  color         String
+  position      Int
+
+  project MonitoredProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, label])
+  @@index([projectId])
+}
+
 model IssueMergeRequest {
   id             String @id @default(cuid())
   issueId        String
   mergeRequestId String
 
-  issue          Issue        @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  mergeRequest   MergeRequest @relation(fields: [mergeRequestId], references: [id], onDelete: Cascade)
+  issue        Issue        @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  mergeRequest MergeRequest @relation(fields: [mergeRequestId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
