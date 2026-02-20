@@ -61,6 +61,7 @@ export interface GitLabBoard {
   hide_backlog_list: boolean;
   hide_closed_list: boolean;
   lists: GitLabBoardList[];
+  assignee?: { id: number; username: string; name: string } | null;
 }
 
 export interface GitLabTokenResponse {

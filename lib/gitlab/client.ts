@@ -1,5 +1,5 @@
 import { GITLAB_API_BASE, RATE_LIMIT_THRESHOLD } from "@/lib/constants";
-import type { GitLabProject, GitLabMergeRequest, GitLabIssue, GitLabBoard, GitLabTokenResponse } from "./types";
+import type { GitLabProject, GitLabMergeRequest, GitLabIssue, GitLabBoard, GitLabBoardList, GitLabTokenResponse } from "./types";
 import { prisma } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/encryption";
 
@@ -263,6 +263,17 @@ export async function fetchProjectBoards(
   projectId: number
 ): Promise<GitLabBoard[]> {
   return gitlabFetch<GitLabBoard[]>(`/projects/${projectId}/boards`, token);
+}
+
+export async function fetchBoardLists(
+  token: string,
+  projectId: number,
+  boardId: number
+): Promise<GitLabBoardList[]> {
+  return gitlabFetch<GitLabBoardList[]>(
+    `/projects/${projectId}/boards/${boardId}/lists`,
+    token
+  );
 }
 
 export async function fetchRecentlyClosedMergeRequests(

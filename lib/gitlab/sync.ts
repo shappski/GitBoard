@@ -7,6 +7,7 @@ import {
   fetchRecentlyClosedIssues,
   fetchIssueRelatedMRs,
   fetchProjectBoards,
+  fetchBoardLists,
 } from "./client";
 import { mapMergeRequest, mapIssue } from "./mappers";
 
@@ -22,6 +23,11 @@ export async function syncUserProjects(userId: string): Promise<{
 
   try {
     const token = await getValidToken(userId);
+
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { gitlabId: true },
+    });
 
     const projects = await prisma.monitoredProject.findMany({
       where: { userId, syncEnabled: true },
@@ -144,9 +150,12 @@ export async function syncUserProjects(userId: string): Promise<{
       // Fetch and store board configuration
       const boards = await fetchProjectBoards(token, project.gitlabProjectId);
       if (boards.length > 0) {
-        const board = boards[0];
+        const board =
+          (user.gitlabId && boards.find((b) => b.assignee?.id === user.gitlabId))
+          || boards[0];
+        const lists = await fetchBoardLists(token, project.gitlabProjectId, board.id);
         await prisma.boardList.deleteMany({ where: { projectId: project.id } });
-        for (const list of board.lists) {
+        for (const list of lists) {
           await prisma.boardList.create({
             data: {
               projectId: project.id,
