@@ -48,12 +48,26 @@ export function BoardColumn({ label, issues, color }: BoardColumnProps) {
         <span className="mt-2 inline-flex items-center justify-center rounded-full bg-gray-200 h-5 w-5 text-[10px] font-medium text-gray-700">
           {issues.length}
         </span>
-        <span
-          className="mt-3 text-xs font-semibold text-gray-700 whitespace-nowrap"
-          style={{ writingMode: "vertical-rl" }}
-        >
-          {label}
-        </span>
+        {color ? (
+          <span
+            className="mt-3 text-xs font-semibold whitespace-nowrap border rounded px-0.5 py-1"
+            style={{
+              writingMode: "vertical-rl",
+              color: color,
+              borderColor: color,
+              backgroundColor: color + "1a",
+            }}
+          >
+            {label}
+          </span>
+        ) : (
+          <span
+            className="mt-3 text-xs font-semibold text-gray-700 whitespace-nowrap"
+            style={{ writingMode: "vertical-rl" }}
+          >
+            {label}
+          </span>
+        )}
       </div>
     );
   }
@@ -74,7 +88,20 @@ export function BoardColumn({ label, issues, color }: BoardColumnProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="m15 19-7-7 7-7" />
             </svg>
           </button>
-          <h3 className="text-sm font-semibold text-gray-700 truncate">{label}</h3>
+          {color ? (
+            <span
+              className="inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold border truncate"
+              style={{
+                color: color,
+                borderColor: color,
+                backgroundColor: color + "1a",
+              }}
+            >
+              {label}
+            </span>
+          ) : (
+            <h3 className="text-sm font-semibold text-gray-700 truncate">{label}</h3>
+          )}
         </div>
         <span className="ml-2 inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700">
           {issues.length}
