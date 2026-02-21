@@ -56,11 +56,24 @@ export function BoardColumns({ issues, labels, boardLists }: BoardColumnsProps) 
   const columnLabels = useBoardLists ? boardLists.map((bl) => bl.label) : labels;
   const columnMap = new Map(columns.map((c) => [c.label, c]));
 
+  // Derive the scoped-label prefix (e.g. "Stage::") so we can hide all
+  // labels in that scope from cards, not just the ones used as columns.
+  let scopePrefix: string | null = null;
+  if (useBoardLists && boardLists.length > 0) {
+    const sep = boardLists[0].label.lastIndexOf("::");
+    if (sep !== -1) scopePrefix = boardLists[0].label.substring(0, sep + 2);
+  }
+
   for (const issue of issues) {
     const columnLabel = assignIssueToColumn(issue, columnLabels);
     const col = columnMap.get(columnLabel);
     if (col) {
-      col.issues.push(issue);
+      col.issues.push({
+        ...issue,
+        labels: issue.labels.filter((l) =>
+          scopePrefix ? !l.startsWith(scopePrefix) : !columnLabels.includes(l)
+        ),
+      });
     }
   }
 

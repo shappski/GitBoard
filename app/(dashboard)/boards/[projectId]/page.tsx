@@ -99,6 +99,21 @@ export default function BoardPage() {
     fetchData();
   }, [fetchData]);
 
+  const columnLabelPrefix = useMemo(() => {
+    if (!data || data.meta.boardLists.length === 0) return null;
+    const first = data.meta.boardLists[0].label;
+    const sep = first.lastIndexOf("::");
+    return sep !== -1 ? first.substring(0, sep + 2) : null;
+  }, [data]);
+
+  const filterBarLabels = useMemo(() => {
+    if (!data) return [] as string[];
+    if (columnLabelPrefix) {
+      return data.meta.labels.filter((l) => !l.startsWith(columnLabelPrefix));
+    }
+    return data.meta.labels;
+  }, [data, columnLabelPrefix]);
+
   const filteredIssues = useMemo(() => {
     if (!data) return [];
     let issues = data.issues;
@@ -174,7 +189,7 @@ export default function BoardPage() {
 
       <BoardFilterBar
         assignees={data.meta.assignees}
-        labels={data.meta.labels}
+        labels={filterBarLabels}
         selectedAssignee={selectedAssignee}
         selectedLabels={selectedLabels}
         searchQuery={searchQuery}
