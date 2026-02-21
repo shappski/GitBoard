@@ -85,7 +85,7 @@ export function BoardColumn({ label, issues, color }: BoardColumnProps) {
   }
 
   return (
-    <div className="flex w-[280px] min-w-[280px] flex-col bg-background">
+    <div className="flex w-[375px] min-w-[375px] flex-col bg-background">
       {color && (
         <div className="h-1 rounded-t-lg" style={{ backgroundColor: color }} />
       )}
