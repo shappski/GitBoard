@@ -106,23 +106,24 @@ export default function BoardPage() {
     return sep !== -1 ? first.substring(0, sep + 2) : null;
   }, [data]);
 
+  const assigneeFilteredIssues = useMemo(() => {
+    if (!data) return [];
+    if (!selectedAssignee) return data.issues;
+    return data.issues.filter((issue) =>
+      issue.assignees.some((a) => a.username === selectedAssignee)
+    );
+  }, [data, selectedAssignee]);
+
   const filterBarLabels = useMemo(() => {
-    if (!data) return [] as string[];
+    const used = new Set(assigneeFilteredIssues.flatMap((i) => i.labels));
     if (columnLabelPrefix) {
-      return data.meta.labels.filter((l) => !l.startsWith(columnLabelPrefix));
+      return [...used].filter((l) => !l.startsWith(columnLabelPrefix)).sort();
     }
-    return data.meta.labels;
-  }, [data, columnLabelPrefix]);
+    return [...used].sort();
+  }, [assigneeFilteredIssues, columnLabelPrefix]);
 
   const filteredIssues = useMemo(() => {
-    if (!data) return [];
-    let issues = data.issues;
-
-    if (selectedAssignee) {
-      issues = issues.filter((issue) =>
-        issue.assignees.some((a) => a.username === selectedAssignee)
-      );
-    }
+    let issues = assigneeFilteredIssues;
 
     if (selectedLabels.length > 0) {
       issues = issues.filter((issue) =>
@@ -138,7 +139,7 @@ export default function BoardPage() {
     }
 
     return issues;
-  }, [data, selectedAssignee, selectedLabels, searchQuery]);
+  }, [assigneeFilteredIssues, selectedLabels, searchQuery]);
 
   if (loading) {
     return (
