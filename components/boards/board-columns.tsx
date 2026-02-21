@@ -37,7 +37,10 @@ function assignIssueToColumn(issue: IssueData, columnLabels: string[]): string {
     columnLabels.includes(l)
   );
   if (issueLabels.length === 0) return "Open";
-  issueLabels.sort((a, b) => a.localeCompare(b));
+  // Pick the label that appears latest in the column order (highest position)
+  issueLabels.sort(
+    (a, b) => columnLabels.indexOf(b) - columnLabels.indexOf(a)
+  );
   return issueLabels[0];
 }
 

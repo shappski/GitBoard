@@ -69,10 +69,11 @@ export default function BoardPage() {
   const switcherRef = useRef<HTMLDivElement>(null);
 
   const assigneeKey = `board-assignee:${params.projectId}`;
-  const [selectedAssignee, setSelectedAssigneeRaw] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem(assigneeKey) ?? "";
-  });
+  const [selectedAssignee, setSelectedAssigneeRaw] = useState("");
+  useEffect(() => {
+    const stored = localStorage.getItem(assigneeKey);
+    if (stored) setSelectedAssigneeRaw(stored);
+  }, [assigneeKey]);
   const setSelectedAssignee = useCallback(
     (v: string) => {
       setSelectedAssigneeRaw(v);
