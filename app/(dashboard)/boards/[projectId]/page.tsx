@@ -178,15 +178,16 @@ export default function BoardPage() {
           <Link href="/boards" className="hover:text-indigo-600">Boards</Link>
           <span>/</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">{data.project.name}</h1>
+        <div className="flex items-center gap-6">
+          <h1 className="text-2xl font-bold text-gray-900">{data.project.name}</h1>
+          <BoardStats stats={data.stats} />
+        </div>
         {data.project.nameWithNamespace && (
           <p className="mt-1 text-sm text-gray-500">
             {data.project.nameWithNamespace}
           </p>
         )}
       </div>
-
-      <BoardStats stats={data.stats} />
 
       <BoardFilterBar
         assignees={data.meta.assignees}
