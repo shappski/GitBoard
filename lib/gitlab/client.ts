@@ -91,39 +91,49 @@ async function handleRateLimit(res: Response): Promise<void> {
   }
 }
 
+const MAX_RETRIES = 3;
+
 export async function gitlabFetch<T>(
   path: string,
   token: string,
   options?: { params?: Record<string, string> }
 ): Promise<T> {
-  const url = new URL(`${GITLAB_API_BASE}${path}`);
-  if (options?.params) {
-    Object.entries(options.params).forEach(([k, v]) =>
-      url.searchParams.set(k, v)
-    );
+  let retries = 0;
+
+  while (true) {
+    const url = new URL(`${GITLAB_API_BASE}${path}`);
+    if (options?.params) {
+      Object.entries(options.params).forEach(([k, v]) =>
+        url.searchParams.set(k, v)
+      );
+    }
+
+    const res = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (res.status === 429) {
+      if (retries >= MAX_RETRIES) {
+        throw new Error(`GitLab API rate limit exceeded after ${MAX_RETRIES} retries: ${path}`);
+      }
+      retries++;
+      const retryAfter = res.headers.get("Retry-After");
+      const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
+      await sleep(waitMs);
+      continue;
+    }
+
+    if (!res.ok) {
+      throw new Error(`GitLab API error: ${res.status} ${res.statusText}`);
+    }
+
+    await handleRateLimit(res);
+
+    return res.json();
   }
-
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (res.status === 429) {
-    const retryAfter = res.headers.get("Retry-After");
-    const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
-    await sleep(waitMs);
-    return gitlabFetch(path, token, options);
-  }
-
-  if (!res.ok) {
-    throw new Error(`GitLab API error: ${res.status} ${res.statusText}`);
-  }
-
-  await handleRateLimit(res);
-
-  return res.json();
 }
 
 export async function gitlabFetchPaginated<T>(
@@ -134,6 +144,8 @@ export async function gitlabFetchPaginated<T>(
   const allItems: T[] = [];
   let page = 1;
   const perPage = "100";
+
+  let retries = 0;
 
   while (true) {
     const url = new URL(`${GITLAB_API_BASE}${path}`);
@@ -151,6 +163,10 @@ export async function gitlabFetchPaginated<T>(
     });
 
     if (res.status === 429) {
+      if (retries >= MAX_RETRIES) {
+        throw new Error(`GitLab API rate limit exceeded after ${MAX_RETRIES} retries: ${path}`);
+      }
+      retries++;
       const retryAfter = res.headers.get("Retry-After");
       const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
       await sleep(waitMs);
@@ -162,6 +178,7 @@ export async function gitlabFetchPaginated<T>(
     }
 
     await handleRateLimit(res);
+    retries = 0;
 
     const items: T[] = await res.json();
     allItems.push(...items);

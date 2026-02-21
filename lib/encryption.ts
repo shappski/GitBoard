@@ -30,5 +30,6 @@ export function decrypt(data: string): string {
   const encrypted = Buffer.from(parts[2], "hex");
   const decipher = createDecipheriv(ALGORITHM, getKey(), iv);
   decipher.setAuthTag(tag);
-  return decipher.update(encrypted) + decipher.final("utf8");
+  const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+  return decrypted.toString("utf8");
 }
