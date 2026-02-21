@@ -61,7 +61,7 @@ export function BoardColumn({ label, issues, color }: BoardColumnProps) {
         </span>
         {color ? (
           <span
-            className="mt-3 text-xs font-semibold whitespace-nowrap border rounded px-0.5 py-1"
+            className="mt-3 text-xs font-semibold whitespace-nowrap border rounded-full px-0.5 py-1"
             style={{
               writingMode: "vertical-rl",
               color: color,
@@ -101,14 +101,20 @@ export function BoardColumn({ label, issues, color }: BoardColumnProps) {
           </button>
           {color ? (
             <span
-              className="inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold border truncate"
-              style={{
-                color: color,
-                borderColor: color,
-                backgroundColor: color + "1a",
-              }}
+              className="inline-flex items-center overflow-hidden rounded-full border truncate"
+              style={{ borderColor: color }}
             >
-              {label}
+              <span
+                className="px-2 py-0.5 text-xs font-semibold text-white"
+                style={{ backgroundColor: color }}
+              >
+                Stage
+              </span>
+              <span
+                className="px-2 py-0.5 text-xs font-semibold text-black bg-white"
+              >
+                {label}
+              </span>
             </span>
           ) : (
             <h3 className="text-sm font-semibold text-gray-700 truncate">{label}</h3>
