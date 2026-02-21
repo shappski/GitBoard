@@ -24,7 +24,7 @@ export function BoardFilterBar({
   onLabelsChange,
   onSearchChange,
 }: BoardFilterBarProps) {
-  const [openDropdown, setOpenDropdown] = useState<"assignee" | "label" | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<"assignee" | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,24 +66,7 @@ export function BoardFilterBar({
           </button>
         </span>
       )}
-      {selectedLabels.map((label) => (
-        <span
-          key={label}
-          className="inline-flex items-center gap-1 rounded bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700"
-        >
-          Label = {label}
-          <button
-            onClick={() => toggleLabel(label)}
-            className="ml-0.5 text-indigo-400 hover:text-indigo-600"
-          >
-            <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-            </svg>
-          </button>
-        </span>
-      ))}
-
-      {/* Dropdown triggers */}
+      {/* Assignee dropdown */}
       <div className="relative">
         <button
           onClick={() => setOpenDropdown(openDropdown === "assignee" ? null : "assignee")}
@@ -115,31 +98,28 @@ export function BoardFilterBar({
         )}
       </div>
 
-      <div className="relative">
-        <button
-          onClick={() => setOpenDropdown(openDropdown === "label" ? null : "label")}
-          className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-        >
-          Label
-          <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-          </svg>
-        </button>
-        {openDropdown === "label" && (
-          <div className="absolute left-0 top-full z-10 mt-1 max-h-48 w-48 overflow-y-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg">
-            {labels.map((label) => (
-              <button
-                key={label}
-                onClick={() => toggleLabel(label)}
-                className={`w-full px-3 py-1.5 text-left text-xs hover:bg-gray-50 ${selectedLabels.includes(label) ? "font-medium text-indigo-600" : "text-gray-700"}`}
-              >
-                {label}
-              </button>
-            ))}
-            {labels.length === 0 && (
-              <span className="block px-3 py-1.5 text-xs text-gray-400">None</span>
-            )}
-          </div>
+      <div className="h-5 w-px bg-gray-200" />
+
+      {/* Label pills */}
+      <div className="flex flex-wrap items-center gap-1">
+        {labels.map((label) => {
+          const active = selectedLabels.includes(label);
+          return (
+            <button
+              key={label}
+              onClick={() => toggleLabel(label)}
+              className={`rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+                active
+                  ? "bg-indigo-100 text-indigo-700"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+        {labels.length === 0 && (
+          <span className="text-xs text-gray-400">No labels</span>
         )}
       </div>
 
