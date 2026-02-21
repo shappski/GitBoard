@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { BoardIssueCard, Assignee } from "./board-issue-card";
 
 interface MergeRequestData {
@@ -28,7 +28,18 @@ interface BoardColumnProps {
 }
 
 export function BoardColumn({ label, issues, color }: BoardColumnProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const storageKey = `board-col-collapsed:${label}`;
+  const [collapsed, setCollapsedRaw] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(storageKey) === "1";
+  });
+  const setCollapsed = useCallback(
+    (v: boolean) => {
+      setCollapsedRaw(v);
+      localStorage.setItem(storageKey, v ? "1" : "0");
+    },
+    [storageKey]
+  );
 
   if (collapsed) {
     return (

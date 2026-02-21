@@ -56,7 +56,22 @@ export default function BoardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedAssignee, setSelectedAssignee] = useState("");
+  const assigneeKey = `board-assignee:${params.projectId}`;
+  const [selectedAssignee, setSelectedAssigneeRaw] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem(assigneeKey) ?? "";
+  });
+  const setSelectedAssignee = useCallback(
+    (v: string) => {
+      setSelectedAssigneeRaw(v);
+      if (v) {
+        localStorage.setItem(assigneeKey, v);
+      } else {
+        localStorage.removeItem(assigneeKey);
+      }
+    },
+    [assigneeKey]
+  );
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
