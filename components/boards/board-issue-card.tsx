@@ -27,18 +27,15 @@ interface BoardIssueCardProps {
 
 /**
  * Compute a readable foreground color (black or white) for a given
- * hex background color using relative luminance.
+ * hex background color using perceived brightness.
  */
 function contrastColor(hex: string): string {
   const c = hex.replace("#", "");
-  const r = parseInt(c.substring(0, 2), 16) / 255;
-  const g = parseInt(c.substring(2, 4), 16) / 255;
-  const b = parseInt(c.substring(4, 6), 16) / 255;
-  const luminance =
-    0.2126 * (r <= 0.03928 ? r / 12.92 : ((r + 0.055) / 1.055) ** 2.4) +
-    0.7152 * (g <= 0.03928 ? g / 12.92 : ((g + 0.055) / 1.055) ** 2.4) +
-    0.0722 * (b <= 0.03928 ? b / 12.92 : ((b + 0.055) / 1.055) ** 2.4);
-  return luminance > 0.179 ? "#000000" : "#ffffff";
+  const r = parseInt(c.substring(0, 2), 16);
+  const g = parseInt(c.substring(2, 4), 16);
+  const b = parseInt(c.substring(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128 ? "#000000" : "#ffffff";
 }
 
 function AssigneeAvatar({ assignee }: { assignee: Assignee }) {
