@@ -28,17 +28,20 @@ export async function GET(
       );
     }
 
-    const issues = await prisma.issue.findMany({
-      where: { projectId, state: "opened" },
-      include: {
-        mergeRequests: {
-          include: {
-            mergeRequest: true,
-          },
-        },
-      },
-      orderBy: { gitlabUpdatedAt: "desc" },
-    });
+    const [openIssuesRaw, closedIssuesRaw] = await Promise.all([
+      prisma.issue.findMany({
+        where: { projectId, state: "opened" },
+        include: { mergeRequests: { include: { mergeRequest: true } } },
+        orderBy: { gitlabUpdatedAt: "desc" },
+      }),
+      prisma.issue.findMany({
+        where: { projectId, state: "closed" },
+        include: { mergeRequests: { include: { mergeRequest: true } } },
+        orderBy: { gitlabUpdatedAt: "desc" },
+        take: 200,
+      }),
+    ]);
+    const issues = [...openIssuesRaw, ...closedIssuesRaw];
 
     const enriched = issues.map((issue) => ({
       ...issue,
@@ -51,12 +54,13 @@ export async function GET(
       })),
     }));
 
+    const openIssues = enriched.filter((i) => i.state === "opened");
     const stats = {
-      totalIssues: enriched.length,
-      issuesWithMRs: enriched.filter((i) => i.mergeRequests.length > 0).length,
-      issuesWithoutMRs: enriched.filter((i) => i.mergeRequests.length === 0)
+      totalIssues: openIssues.length,
+      issuesWithMRs: openIssues.filter((i) => i.mergeRequests.length > 0).length,
+      issuesWithoutMRs: openIssues.filter((i) => i.mergeRequests.length === 0)
         .length,
-      issuesWithStaleMRs: enriched.filter((i) =>
+      issuesWithStaleMRs: openIssues.filter((i) =>
         i.mergeRequests.some((mr) => mr.isStale)
       ).length,
     };
@@ -69,7 +73,7 @@ export async function GET(
 
     const allLabels = new Set<string>();
     const assigneeMap = new Map<string, { name: string; username: string; avatar_url: string }>();
-    for (const issue of enriched) {
+    for (const issue of openIssues) {
       for (const label of issue.labels as string[]) {
         allLabels.add(label);
       }

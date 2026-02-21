@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { BoardStats } from "@/components/boards/board-stats";
 import { BoardColumns } from "@/components/boards/board-columns";
@@ -22,6 +22,7 @@ interface IssueData {
   id: string;
   title: string;
   webUrl: string;
+  state: string;
   authorName: string | null;
   authorUsername: string | null;
   labels: string[];
@@ -50,11 +51,22 @@ interface BoardData {
   };
 }
 
+interface SwitcherProject {
+  id: string;
+  name: string;
+  nameWithNamespace: string | null;
+}
+
 export default function BoardPage() {
   const params = useParams<{ projectId: string }>();
+  const router = useRouter();
   const [data, setData] = useState<BoardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [switcherProjects, setSwitcherProjects] = useState<SwitcherProject[] | null>(null);
+  const switcherRef = useRef<HTMLDivElement>(null);
 
   const assigneeKey = `board-assignee:${params.projectId}`;
   const [selectedAssignee, setSelectedAssigneeRaw] = useState(() => {
@@ -98,6 +110,45 @@ export default function BoardPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Persist selected board for redirect from /boards
+  useEffect(() => {
+    if (data) {
+      localStorage.setItem("last-board", params.projectId);
+    }
+  }, [data, params.projectId]);
+
+  // Fetch projects for switcher dropdown
+  const fetchSwitcherProjects = useCallback(async () => {
+    if (switcherProjects !== null) return;
+    try {
+      const res = await fetch("/api/projects");
+      if (res.ok) {
+        setSwitcherProjects(await res.json());
+      }
+    } catch {
+      // ignore
+    }
+  }, [switcherProjects]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!switcherOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (switcherRef.current && !switcherRef.current.contains(e.target as Node)) {
+        setSwitcherOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [switcherOpen]);
+
+  const toggleSwitcher = useCallback(() => {
+    setSwitcherOpen((prev) => {
+      if (!prev) fetchSwitcherProjects();
+      return !prev;
+    });
+  }, [fetchSwitcherProjects]);
 
   const columnLabelPrefix = useMemo(() => {
     if (!data || data.meta.boardLists.length === 0) return null;
@@ -183,7 +234,36 @@ export default function BoardPage() {
                     <svg className="h-4 w-4 text-blue-500" viewBox="0 0 16 16" fill="currentColor">
                       <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h3.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 9.62 4H13.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9Z" />
                     </svg>
-                    <a href={data.project.webUrl} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600">{part}</a>
+                    <div className="relative" ref={switcherRef}>
+                      <button onClick={toggleSwitcher} className="flex items-center gap-1 hover:text-indigo-600">
+                        {part}
+                        <svg className={`h-3 w-3 transition-transform ${switcherOpen ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                      {switcherOpen && (
+                        <div className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                          {switcherProjects === null ? (
+                            <div className="px-3 py-2 text-xs text-gray-400">Loading...</div>
+                          ) : switcherProjects.length === 0 ? (
+                            <div className="px-3 py-2 text-xs text-gray-400">No projects</div>
+                          ) : (
+                            switcherProjects.map((p) => (
+                              <button
+                                key={p.id}
+                                onClick={() => {
+                                  setSwitcherOpen(false);
+                                  if (p.id !== params.projectId) router.push(`/boards/${p.id}`);
+                                }}
+                                className={`block w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50 ${p.id === params.projectId ? "font-medium text-indigo-600" : "text-gray-700"}`}
+                              >
+                                {p.nameWithNamespace ?? p.name}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </>) : (<>
                     <svg className="h-4 w-4 text-gray-400" viewBox="0 0 16 16" fill="currentColor">
                       <path d="M0 2.5A1.5 1.5 0 0 1 1.5 1h3.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 8.62 3H14.5A1.5 1.5 0 0 1 16 4.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 0-.5-.5H8.621a2.5 2.5 0 0 1-1.768-.732L5.732 2.146A.5.5 0 0 0 5.379 2H1.5a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5V7.5a.5.5 0 0 1 1 0v6A1.5 1.5 0 0 1 14.5 15h-13A1.5 1.5 0 0 1 0 13.5v-11Z" />
@@ -196,7 +276,36 @@ export default function BoardPage() {
                 <svg className="h-4 w-4 text-blue-500" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h3.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 9.62 4H13.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9Z" />
                 </svg>
-                <a href={data.project.webUrl} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600">{data.project.name}</a>
+                <div className="relative" ref={switcherRef}>
+                  <button onClick={toggleSwitcher} className="flex items-center gap-1 hover:text-indigo-600">
+                    {data.project.name}
+                    <svg className={`h-3 w-3 transition-transform ${switcherOpen ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  {switcherOpen && (
+                    <div className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                      {switcherProjects === null ? (
+                        <div className="px-3 py-2 text-xs text-gray-400">Loading...</div>
+                      ) : switcherProjects.length === 0 ? (
+                        <div className="px-3 py-2 text-xs text-gray-400">No projects</div>
+                      ) : (
+                        switcherProjects.map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => {
+                              setSwitcherOpen(false);
+                              if (p.id !== params.projectId) router.push(`/boards/${p.id}`);
+                            }}
+                            className={`block w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50 ${p.id === params.projectId ? "font-medium text-indigo-600" : "text-gray-700"}`}
+                          >
+                            {p.nameWithNamespace ?? p.name}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
               </>
           }
           <span>/</span>

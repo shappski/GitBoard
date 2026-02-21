@@ -131,19 +131,24 @@ export async function syncUserProjects(userId: string): Promise<{
 
       totalIssuesFetched += openIssues.length;
 
-      // Clean up closed issues
+      // Upsert recently closed issues so they appear in the Closed column
       const closedIssues = await fetchRecentlyClosedIssues(
         token,
         project.gitlabProjectId,
         updatedAfter
       );
 
-      if (closedIssues.length > 0) {
-        await prisma.issue.deleteMany({
+      for (const issue of closedIssues) {
+        const data = mapIssue(issue, project.id);
+        await prisma.issue.upsert({
           where: {
-            projectId: project.id,
-            gitlabIssueIid: { in: closedIssues.map((i) => i.iid) },
+            projectId_gitlabIssueIid: {
+              projectId: project.id,
+              gitlabIssueIid: issue.iid,
+            },
           },
+          update: data,
+          create: data,
         });
       }
 

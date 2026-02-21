@@ -14,6 +14,7 @@ interface IssueData {
   id: string;
   title: string;
   webUrl: string;
+  state: string;
   labels: string[];
   assignees: Assignee[];
   mergeRequests: MergeRequestData[];
@@ -42,15 +43,18 @@ function assignIssueToColumn(issue: IssueData, columnLabels: string[]): string {
 
 export function BoardColumns({ issues, labels, boardLists }: BoardColumnsProps) {
   const useBoardLists = boardLists.length > 0;
+  const hasClosed = issues.some((i) => i.state === "closed");
 
   const columns: { label: string; color?: string; issues: IssueData[] }[] = useBoardLists
     ? [
         { label: "Open", issues: [] },
         ...boardLists.map((bl) => ({ label: bl.label, color: bl.color, issues: [] as IssueData[] })),
+        ...(hasClosed ? [{ label: "Closed", issues: [] as IssueData[] }] : []),
       ]
     : [
         { label: "Open", issues: [] },
         ...labels.map((l) => ({ label: l, issues: [] as IssueData[] })),
+        ...(hasClosed ? [{ label: "Closed", issues: [] as IssueData[] }] : []),
       ];
 
   const columnLabels = useBoardLists ? boardLists.map((bl) => bl.label) : labels;
@@ -65,6 +69,20 @@ export function BoardColumns({ issues, labels, boardLists }: BoardColumnsProps) 
   }
 
   for (const issue of issues) {
+    // Closed issues always go to the Closed column
+    if (issue.state === "closed") {
+      const col = columnMap.get("Closed");
+      if (col) {
+        col.issues.push({
+          ...issue,
+          labels: issue.labels.filter((l) =>
+            scopePrefix ? !l.startsWith(scopePrefix) : !columnLabels.includes(l)
+          ),
+        });
+      }
+      continue;
+    }
+
     const columnLabel = assignIssueToColumn(issue, columnLabels);
     const col = columnMap.get(columnLabel);
     if (col) {
