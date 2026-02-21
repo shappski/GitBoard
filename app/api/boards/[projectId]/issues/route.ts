@@ -45,6 +45,7 @@ export async function GET(
 
     const enriched = issues.map((issue) => ({
       ...issue,
+      gitlabIssueIid: issue.gitlabIssueIid,
       assignees: (issue.assignees ?? []) as { name: string; username: string; avatar_url: string }[],
       mergeRequests: issue.mergeRequests.map((imr) => ({
         ...imr.mergeRequest,
@@ -71,6 +72,16 @@ export async function GET(
       select: { label: true, color: true, position: true },
     });
 
+    // Build label color map from Label table
+    const dbLabels = await prisma.label.findMany({
+      where: { projectId },
+      select: { name: true, color: true },
+    });
+    const labelColors: Record<string, string> = {};
+    for (const l of dbLabels) {
+      labelColors[l.name] = l.color;
+    }
+
     const allLabels = new Set<string>();
     const assigneeMap = new Map<string, { name: string; username: string; avatar_url: string }>();
     for (const issue of openIssues) {
@@ -90,6 +101,7 @@ export async function GET(
         a.name.localeCompare(b.name)
       ),
       boardLists,
+      labelColors,
     };
 
     return NextResponse.json({ project, issues: enriched, stats, meta });

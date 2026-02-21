@@ -20,6 +20,7 @@ interface MergeRequestData {
 
 interface IssueData {
   id: string;
+  gitlabIssueIid: number;
   title: string;
   webUrl: string;
   state: string;
@@ -48,6 +49,7 @@ interface BoardData {
     labels: string[];
     assignees: Assignee[];
     boardLists: { label: string; color: string; position: number }[];
+    labelColors: Record<string, string>;
   };
 }
 
@@ -326,7 +328,7 @@ export default function BoardPage() {
         onSearchChange={setSearchQuery}
       />
 
-      <BoardColumns issues={filteredIssues} labels={data.meta.labels} boardLists={data.meta.boardLists} />
+      <BoardColumns issues={filteredIssues} labels={data.meta.labels} boardLists={data.meta.boardLists} labelColors={data.meta.labelColors} />
     </div>
   );
 }

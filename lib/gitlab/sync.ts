@@ -8,6 +8,7 @@ import {
   fetchIssueRelatedMRs,
   fetchProjectBoards,
   fetchBoardLists,
+  fetchProjectLabels,
 } from "./client";
 import { mapMergeRequest, mapIssue } from "./mappers";
 
@@ -149,6 +150,18 @@ export async function syncUserProjects(userId: string): Promise<{
           },
           update: data,
           create: data,
+        });
+      }
+
+      // Fetch and upsert project labels (for colors)
+      const gitlabLabels = await fetchProjectLabels(token, project.gitlabProjectId);
+      for (const gl of gitlabLabels) {
+        await prisma.label.upsert({
+          where: {
+            projectId_name: { projectId: project.id, name: gl.name },
+          },
+          update: { color: gl.color },
+          create: { projectId: project.id, name: gl.name, color: gl.color },
         });
       }
 

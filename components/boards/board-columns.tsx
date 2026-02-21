@@ -12,6 +12,7 @@ interface MergeRequestData {
 
 interface IssueData {
   id: string;
+  gitlabIssueIid: number;
   title: string;
   webUrl: string;
   state: string;
@@ -30,6 +31,7 @@ interface BoardColumnsProps {
   issues: IssueData[];
   labels: string[];
   boardLists: BoardListDef[];
+  labelColors: Record<string, string>;
 }
 
 function assignIssueToColumn(issue: IssueData, columnLabels: string[]): string {
@@ -44,7 +46,7 @@ function assignIssueToColumn(issue: IssueData, columnLabels: string[]): string {
   return issueLabels[0];
 }
 
-export function BoardColumns({ issues, labels, boardLists }: BoardColumnsProps) {
+export function BoardColumns({ issues, labels, boardLists, labelColors }: BoardColumnsProps) {
   const useBoardLists = boardLists.length > 0;
   const hasClosed = issues.some((i) => i.state === "closed");
 
@@ -118,7 +120,7 @@ export function BoardColumns({ issues, labels, boardLists }: BoardColumnsProps) 
         {columns.map((col, i) => (
           <div key={col.label} className="flex">
             {i > 0 && <div className="w-1 self-stretch bg-white" />}
-            <BoardColumn label={col.label} issues={col.issues} color={col.color} />
+            <BoardColumn label={col.label} issues={col.issues} color={col.color} labelColors={labelColors} />
           </div>
         ))}
       </div>

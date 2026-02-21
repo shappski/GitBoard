@@ -64,6 +64,11 @@ export interface GitLabBoard {
   assignee?: { id: number; username: string; name: string } | null;
 }
 
+export interface GitLabLabel {
+  name: string;
+  color: string;
+}
+
 export interface GitLabTokenResponse {
   access_token: string;
   token_type: string;

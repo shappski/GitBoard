@@ -14,6 +14,7 @@ interface MergeRequestData {
 
 interface IssueData {
   id: string;
+  gitlabIssueIid: number;
   title: string;
   webUrl: string;
   labels: string[];
@@ -25,9 +26,10 @@ interface BoardColumnProps {
   label: string;
   issues: IssueData[];
   color?: string;
+  labelColors: Record<string, string>;
 }
 
-export function BoardColumn({ label, issues, color }: BoardColumnProps) {
+export function BoardColumn({ label, issues, color, labelColors }: BoardColumnProps) {
   const storageKey = `board-col-collapsed:${label}`;
   const [collapsed, setCollapsedRaw] = useState(false);
   useEffect(() => {
@@ -137,6 +139,8 @@ export function BoardColumn({ label, issues, color }: BoardColumnProps) {
             labels={issue.labels}
             assignees={issue.assignees}
             mergeRequests={issue.mergeRequests}
+            gitlabIssueIid={issue.gitlabIssueIid}
+            labelColors={labelColors}
           />
         ))}
       </div>

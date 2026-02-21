@@ -1,5 +1,5 @@
 import { GITLAB_API_BASE, RATE_LIMIT_THRESHOLD } from "@/lib/constants";
-import type { GitLabProject, GitLabMergeRequest, GitLabIssue, GitLabBoard, GitLabBoardList, GitLabTokenResponse } from "./types";
+import type { GitLabProject, GitLabMergeRequest, GitLabIssue, GitLabBoard, GitLabBoardList, GitLabLabel, GitLabTokenResponse } from "./types";
 import { prisma } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/encryption";
 
@@ -289,6 +289,16 @@ export async function fetchBoardLists(
 ): Promise<GitLabBoardList[]> {
   return gitlabFetch<GitLabBoardList[]>(
     `/projects/${projectId}/boards/${boardId}/lists`,
+    token
+  );
+}
+
+export async function fetchProjectLabels(
+  token: string,
+  projectId: number
+): Promise<GitLabLabel[]> {
+  return gitlabFetchPaginated<GitLabLabel>(
+    `/projects/${projectId}/labels`,
     token
   );
 }
