@@ -132,7 +132,7 @@ export function BoardIssueCard({
   const staleMr = mergeRequests.find((mr) => mr.isStale);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm hover:shadow-md transition-shadow">
+    <div className="rounded border border-gray-200 bg-white p-3 shadow-sm">
       {/* Title */}
       <a
         href={webUrl}
@@ -156,11 +156,11 @@ export function BoardIssueCard({
       <div className="mt-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <svg
-            className="h-3.5 w-3.5 text-gray-400"
+            className="h-3.5 w-3.5 text-green-600"
             viewBox="0 0 16 16"
             fill="currentColor"
           >
-            <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm9-3a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM8 6.75a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 6.75Z" />
+            <path d="M3 1.5A1.5 1.5 0 0 1 4.5 0h5.379a1.5 1.5 0 0 1 1.06.44l2.122 2.12A1.5 1.5 0 0 1 13.5 3.622V14.5A1.5 1.5 0 0 1 12 16H4.5A1.5 1.5 0 0 1 3 14.5V1.5Zm1.5 0v13h7.5V4H9.5A1.5 1.5 0 0 1 8 2.5V1.5H4.5Z" />
           </svg>
           <span className="text-xs text-gray-500">#{gitlabIssueIid}</span>
           {staleMr && (

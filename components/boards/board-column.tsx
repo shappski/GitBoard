@@ -123,9 +123,20 @@ export function BoardColumn({ label, issues, color, labelColors }: BoardColumnPr
             <h3 className="text-sm font-semibold text-gray-700 truncate">{label}</h3>
           )}
         </div>
-        <span className="ml-2 inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700">
-          {issues.length}
-        </span>
+        <div className="ml-2 flex items-center gap-2 text-xs text-gray-500">
+          <span className="flex items-center gap-0.5">
+            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M3 1.5A1.5 1.5 0 0 1 4.5 0h5.379a1.5 1.5 0 0 1 1.06.44l2.122 2.12A1.5 1.5 0 0 1 13.5 3.622V14.5A1.5 1.5 0 0 1 12 16H4.5A1.5 1.5 0 0 1 3 14.5V1.5Zm1.5 0v13h7.5V4H9.5A1.5 1.5 0 0 1 8 2.5V1.5H4.5Z" />
+            </svg>
+            {issues.length}
+          </span>
+          <span className="flex items-center gap-0.5">
+            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M5.45 5.154A4.25 4.25 0 0 0 9.25 7.5h1.378a2.25 2.25 0 1 1 0 1.5H9.25A5.734 5.734 0 0 1 5 7.123v3.505a2.25 2.25 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.95-.218ZM4.25 13.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm8.5-4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5ZM5 3.25a.75.75 0 1 0 0 .005V3.25Z" />
+            </svg>
+            {issues.reduce((sum, i) => sum + i.mergeRequests.length, 0)}
+          </span>
+        </div>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-2" style={{ maxHeight: "calc(100vh - 320px)" }}>
         {issues.length === 0 && (
