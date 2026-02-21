@@ -173,20 +173,36 @@ export default function BoardPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/boards" className="hover:text-indigo-600">Boards</Link>
+      <div className="flex items-center gap-6">
+        <nav className="flex items-center gap-2 text-sm text-gray-500">
+          {data.project.nameWithNamespace
+            ? data.project.nameWithNamespace.split(" / ").map((part, i, arr) => (
+                <span key={i} className="flex items-center gap-2">
+                  {i > 0 && <span>/</span>}
+                  {i === arr.length - 1 ? (<>
+                    <svg className="h-4 w-4 text-blue-500" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h3.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 9.62 4H13.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9Z" />
+                    </svg>
+                    <a href={data.project.webUrl} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600">{part}</a>
+                  </>) : (<>
+                    <svg className="h-4 w-4 text-gray-400" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M0 2.5A1.5 1.5 0 0 1 1.5 1h3.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 8.62 3H14.5A1.5 1.5 0 0 1 16 4.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 0-.5-.5H8.621a2.5 2.5 0 0 1-1.768-.732L5.732 2.146A.5.5 0 0 0 5.379 2H1.5a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5V7.5a.5.5 0 0 1 1 0v6A1.5 1.5 0 0 1 14.5 15h-13A1.5 1.5 0 0 1 0 13.5v-11Z" />
+                    </svg>
+                    <span>{part}</span>
+                  </>)}
+                </span>
+              ))
+            : <>
+                <svg className="h-4 w-4 text-blue-500" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h3.879a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 9.62 4H13.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9Z" />
+                </svg>
+                <a href={data.project.webUrl} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600">{data.project.name}</a>
+              </>
+          }
           <span>/</span>
-        </div>
-        <div className="flex items-center gap-6">
-          <h1 className="text-2xl font-bold text-gray-900">{data.project.name}</h1>
-          <BoardStats stats={data.stats} />
-        </div>
-        {data.project.nameWithNamespace && (
-          <p className="mt-1 text-sm text-gray-500">
-            {data.project.nameWithNamespace}
-          </p>
-        )}
+          <span className="font-semibold text-gray-900">Issue Board</span>
+        </nav>
+        <BoardStats stats={data.stats} />
       </div>
 
       <BoardFilterBar
