@@ -81,14 +81,30 @@ export function BoardFilterBar({
 
       <div className="h-6 w-px bg-gray-200" />
 
-      <div className="flex-1">
+      <div className="relative flex-1">
         <input
           type="text"
           placeholder="Search issues..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full min-w-[160px] rounded-md border border-gray-300 px-2.5 py-1 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && searchQuery) {
+              onSearchChange("");
+            }
+          }}
+          className="w-full min-w-[160px] rounded-md border border-gray-300 px-2.5 py-1 pr-7 text-sm text-gray-700 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => onSearchChange("")}
+            className="absolute inset-y-0 right-1.5 flex items-center text-gray-400 hover:text-gray-600"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z" clipRule="evenodd" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );
